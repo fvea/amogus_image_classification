@@ -1,0 +1,1 @@
+docker run -t --rm -p 8501:8501 -v C:\Users\fjvin\projects\amogus:/amogus tensorflow/serving --rest_api_port=8501 --model_config_file=/amogus/models.config
