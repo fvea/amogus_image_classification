@@ -2,10 +2,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File
 from io import BytesIO
 from PIL import Image
-import tensorflow as tf
 import numpy as np
 import uvicorn
 import requests
+import json
 
 
 app = FastAPI()
@@ -22,14 +22,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL = tf.keras.models.load_model("models/1")
 CLASS_NAMES = ["crewmate", "impostor"]
-
-IMAGE_SIZE = (150, 150)
 THRESHOLD = 0.5
 
-endpoint = "http://localhost:8501/v1/models/amogus_model:predict"
-
+SERVER_URL = "http://localhost:8501/v1/models/mobilenetv2:predict"
 
 @app.get("/ping")
 async def ping():
@@ -38,8 +34,7 @@ async def ping():
 
 def read_file_as_image(data) -> np.ndarray:
     image = np.array(Image.open(BytesIO(data)).convert("RGB"))
-    resize_image = tf.image.resize(image, IMAGE_SIZE)
-    return resize_image.numpy()
+    return image
 
 
 @app.post("/predict")
@@ -49,11 +44,12 @@ async def predict(
     image = read_file_as_image(await file.read())
     image_batch = np.expand_dims(image, 0)
 
-    json_data = {
+    input_json_data = json.dumps({
+        "signature_name": "serving_default",
         "instances": image_batch.tolist()
-    }
+    })
 
-    response = requests.post(endpoint, json=json_data)
+    response = requests.post(SERVER_URL, data=input_json_data)
 
     raw_prediction = response.json()["predictions"][0][0]
     prediction = 1 if raw_prediction > THRESHOLD else 0
