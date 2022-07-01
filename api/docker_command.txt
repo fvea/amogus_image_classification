@@ -1,1 +1,1 @@
-docker run -t --rm -p 8501:8501 -v C:\Users\fjvin\projects\amogus:/amogus tensorflow/serving --rest_api_port=8501 --model_config_file=/amogus/models.config
+docker run -it --rm -p 8500:8500 -p 8501:8501 -v C:\Users\fjvin\projects\amogus\models\mobilenetv2:/models/mobilenetv2 -e MODEL_NAME=mobilenetv2 tensorflow/serving
